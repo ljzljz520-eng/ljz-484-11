@@ -28,12 +28,9 @@ public class DataRepository {
                                 LocalDateTime.now());
                 novels.put(novel1.getId(), novel1);
 
-                chapters.put(chapterIdGenerator.get(), new Chapter(chapterIdGenerator.getAndIncrement(), novel1.getId(),
-                                "第一章：Hello World", 1, "他醒来时，发现眼前只有绿色的代码流...", LocalDateTime.now()));
-                chapters.put(chapterIdGenerator.get(), new Chapter(chapterIdGenerator.getAndIncrement(), novel1.getId(),
-                                "第二章：变量声明", 2, "“你是谁？”面前的机器人冷冷地问道。“Define me.”他回答。", LocalDateTime.now()));
-                chapters.put(chapterIdGenerator.get(), new Chapter(chapterIdGenerator.getAndIncrement(), novel1.getId(),
-                                "第三章：循环陷阱", 3, "时间仿佛陷入了死循环，他必须找到 break 的条件。", LocalDateTime.now()));
+                seedChapter(novel1.getId(), "第一章：Hello World", 1, "他醒来时，发现眼前只有绿色的代码流...");
+                seedChapter(novel1.getId(), "第二章：变量声明", 2, "“你是谁？”面前的机器人冷冷地问道。“Define me.”他回答。");
+                seedChapter(novel1.getId(), "第三章：循环陷阱", 3, "时间仿佛陷入了死循环，他必须找到 break 的条件。");
 
                 Novel novel2 = new Novel(novelIdGenerator.getAndIncrement(),
                                 "灵气复苏时代的架构师",
@@ -42,10 +39,8 @@ public class DataRepository {
                                 LocalDateTime.now());
                 novels.put(novel2.getId(), novel2);
 
-                chapters.put(chapterIdGenerator.get(), new Chapter(chapterIdGenerator.getAndIncrement(), novel2.getId(),
-                                "第一章：单体应用破碎", 1, "天地巨变，世界原本的秩序（Monolith）崩塌了。", LocalDateTime.now()));
-                chapters.put(chapterIdGenerator.get(), new Chapter(chapterIdGenerator.getAndIncrement(), novel2.getId(),
-                                "第二章：服务发现", 2, "他感应到了周围的灵气节点，就像注册中心里的服务一样清晰。", LocalDateTime.now()));
+                seedChapter(novel2.getId(), "第一章：单体应用破碎", 1, "天地巨变，世界原本的秩序（Monolith）崩塌了。");
+                seedChapter(novel2.getId(), "第二章：服务发现", 2, "他感应到了周围的灵气节点，就像注册中心里的服务一样清晰。");
 
                 Novel novel3 = new Novel(novelIdGenerator.getAndIncrement(),
                                 "只有我知道剧情的测试员",
@@ -54,6 +49,14 @@ public class DataRepository {
                                 LocalDateTime.now());
                 novels.put(novel3.getId(), novel3);
         }
+
+        private void seedChapter(Long novelId, String title, int orderNo, String content) {
+                long id = chapterIdGenerator.getAndIncrement();
+                chapters.put(id, new Chapter(id, novelId, title, orderNo, content,
+                                Chapter.STATUS_PUBLISHED, LocalDateTime.now(), LocalDateTime.now()));
+        }
+
+        // ---------- Novel ----------
 
         public List<Novel> findAllNovels(String keyword, int page, int size) {
                 return novels.values().stream()
@@ -76,7 +79,26 @@ public class DataRepository {
                 return novels.get(id);
         }
 
-        public List<Chapter> findChaptersByNovelId(Long novelId) {
+        public Novel saveNovel(Novel novel) {
+                novel.setId(novelIdGenerator.getAndIncrement());
+                novel.setCreatedAt(LocalDateTime.now());
+                novels.put(novel.getId(), novel);
+                return novel;
+        }
+
+        // ---------- Chapter ----------
+
+        /** 前台读者视角：仅已发布章节 */
+        public List<Chapter> findPublishedChaptersByNovelId(Long novelId) {
+                return chapters.values().stream()
+                                .filter(c -> c.getNovelId().equals(novelId)
+                                                && Chapter.STATUS_PUBLISHED.equals(c.getStatus()))
+                                .sorted(Comparator.comparing(Chapter::getOrderNo))
+                                .collect(Collectors.toList());
+        }
+
+        /** 作者后台视角：包含草稿在内的全部章节 */
+        public List<Chapter> findAllChaptersByNovelId(Long novelId) {
                 return chapters.values().stream()
                                 .filter(c -> c.getNovelId().equals(novelId))
                                 .sorted(Comparator.comparing(Chapter::getOrderNo))
@@ -85,5 +107,52 @@ public class DataRepository {
 
         public Chapter findChapterById(Long id) {
                 return chapters.get(id);
+        }
+
+        /** 前台阅读：草稿章节对读者不可见 */
+        public Chapter findPublishedChapterById(Long id) {
+                Chapter chapter = chapters.get(id);
+                if (chapter == null || !Chapter.STATUS_PUBLISHED.equals(chapter.getStatus())) {
+                        return null;
+                }
+                return chapter;
+        }
+
+        public Chapter saveChapter(Chapter chapter) {
+                chapter.setId(chapterIdGenerator.getAndIncrement());
+                chapter.setCreatedAt(LocalDateTime.now());
+                chapter.setUpdatedAt(LocalDateTime.now());
+                chapters.put(chapter.getId(), chapter);
+                return chapter;
+        }
+
+        public Chapter updateChapter(Long id, String title, String content) {
+                Chapter chapter = chapters.get(id);
+                if (chapter == null) {
+                        return null;
+                }
+                chapter.setTitle(title);
+                chapter.setContent(content);
+                chapter.setUpdatedAt(LocalDateTime.now());
+                return chapter;
+        }
+
+        public Chapter publishChapter(Long id) {
+                Chapter chapter = chapters.get(id);
+                if (chapter == null) {
+                        return null;
+                }
+                chapter.setStatus(Chapter.STATUS_PUBLISHED);
+                chapter.setUpdatedAt(LocalDateTime.now());
+                return chapter;
+        }
+
+        /** 计算某小说下一章节的序号 */
+        public int nextOrderNo(Long novelId) {
+                return chapters.values().stream()
+                                .filter(c -> c.getNovelId().equals(novelId))
+                                .mapToInt(Chapter::getOrderNo)
+                                .max()
+                                .orElse(0) + 1;
         }
 }

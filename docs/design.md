@@ -22,10 +22,23 @@
 - **阅读页**: 经典的“护眼纸质”配色 (`#fcf6e5`)，无干扰布局。
 
 ## 4. 接口设计 (RESTful API)
+
+### 4.1 读者侧公开接口（仅已发布内容）
 - `GET /api/novels`: 获取小说列表（支持分页与搜索）。
-- `GET /api/novels/{id}`: 获取小说详细信息及章节目录。
-- `GET /api/chapters/{id}`: 获取具体章节正文内容。
+- `GET /api/novels/{id}`: 获取小说详细信息及章节目录（目录仅含已发布章节）。
+- `GET /api/novels/{id}/chapters`: 获取某小说的已发布章节列表。
+- `GET /api/chapters/{id}`: 获取具体章节正文内容（草稿返回 404）。
+
+### 4.2 作者后台接口（`/api/author`，含草稿）
+- `POST /api/author/novels`: 创建小说。
+- `GET /api/author/novels`: 作者的小说列表。
+- `GET /api/author/novels/{novelId}/chapters`: 章节列表（含草稿）。
+- `POST /api/author/novels/{novelId}/chapters`: 新增章节（默认保存为草稿）。
+- `GET /api/author/chapters/{id}`: 获取章节（含草稿，用于编辑）。
+- `PUT /api/author/chapters/{id}`: 保存草稿（修改标题与正文）。
+- `POST /api/author/chapters/{id}/publish`: 发布章节，发布后读者可见。
 
 ## 5. 数据模型
 - **Novel (小说)**: ID, Title, Description, CoverUrl, CreatedAt.
-- **Chapter (章节)**: ID, NovelId, Title, OrderNo, Content, CreatedAt.
+- **Chapter (章节)**: ID, NovelId, Title, OrderNo, Content, Status (`DRAFT`/`PUBLISHED`), CreatedAt, UpdatedAt.
+  - `DRAFT`（草稿）仅作者后台可见；`PUBLISHED`（已发布）对读者可见。

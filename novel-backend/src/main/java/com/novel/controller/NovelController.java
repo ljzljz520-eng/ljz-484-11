@@ -5,12 +5,17 @@ import com.novel.model.Novel;
 import com.novel.repository.DataRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 读者侧公开接口：仅暴露已发布内容，草稿章节对读者不可见。
+ */
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "*") // Allow frontend to access
@@ -41,13 +46,14 @@ public class NovelController {
     }
 
     @GetMapping("/novels/{id}")
-    @Operation(summary = "Get Novel Details (with chapters)")
+    @Operation(summary = "Get Novel Details (with published chapters)")
     public Map<String, Object> getNovelDetail(@PathVariable Long id) {
         Novel novel = dataRepository.findNovelById(id);
         if (novel == null) {
-            throw new RuntimeException("Novel not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Novel not found");
         }
-        List<Chapter> chapters = dataRepository.findChaptersByNovelId(id);
+        // 目录仅包含已发布章节，草稿不在前台展示
+        List<Chapter> chapters = dataRepository.findPublishedChaptersByNovelId(id);
 
         Map<String, Object> response = new HashMap<>();
         response.put("novel", novel);
@@ -56,17 +62,17 @@ public class NovelController {
     }
 
     @GetMapping("/novels/{id}/chapters")
-    @Operation(summary = "Get Chapters for a Novel")
+    @Operation(summary = "Get Published Chapters for a Novel")
     public List<Chapter> getChapters(@PathVariable Long id) {
-        return dataRepository.findChaptersByNovelId(id);
+        return dataRepository.findPublishedChaptersByNovelId(id);
     }
 
     @GetMapping("/chapters/{id}")
-    @Operation(summary = "Get Chapter Content")
+    @Operation(summary = "Get Chapter Content (published only)")
     public Chapter getChapter(@PathVariable Long id) {
-        Chapter chapter = dataRepository.findChapterById(id);
+        Chapter chapter = dataRepository.findPublishedChapterById(id);
         if (chapter == null) {
-            throw new RuntimeException("Chapter not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Chapter not found");
         }
         return chapter;
     }
