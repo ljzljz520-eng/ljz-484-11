@@ -56,7 +56,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { fetchNovels } from '../api'
 import { Search } from '@element-plus/icons-vue'
 
 const novels = ref([])
@@ -65,17 +65,14 @@ const searchKeyword = ref('')
 const page = ref(1)
 const size = ref(10)
 const total = ref(0)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
-const fetchNovels = async () => {
+const fetchNovelList = async () => {
   loading.value = true
   try {
-    const res = await axios.get(`${API_URL}/novels`, {
-      params: {
-        page: page.value,
-        size: size.value,
-        keyword: searchKeyword.value
-      }
+    const res = await fetchNovels({
+      page: page.value,
+      size: size.value,
+      keyword: searchKeyword.value
     })
     novels.value = res.data.data
     total.value = res.data.total
@@ -88,7 +85,7 @@ const fetchNovels = async () => {
 
 const handlePageChange = (val) => {
   page.value = val
-  fetchNovels()
+  fetchNovelList()
 }
 
 const formatDate = (dateStr) => {
@@ -97,7 +94,7 @@ const formatDate = (dateStr) => {
 }
 
 onMounted(() => {
-  fetchNovels()
+  fetchNovelList()
 })
 </script>
 

@@ -17,6 +17,12 @@
 - `GET /api/novels/1`: 返回书籍详情及章节数据。
 - `GET /api/chapters/1`: 正确返回正文字符串。
 
+作者后台接口（需携带 `X-Author-Id` 请求头）：
+- 缺少 `X-Author-Id` 请求头：返回 400。
+- `GET /api/author/novels`: 仅返回当前作者本人的小说，他人作品与种子数据不可见。
+- 访问/修改/发布他人小说的章节草稿：返回 403。
+- 单元测试：`DataRepositoryTest`（作者维度数据隔离）与 `AuthorControllerTest`（接口层 400/403/404 校验）。
+
 ## 4. 兼容性测试
 - **设备**: 适配 PC 端 (1440px+) 和 移动端 (iPhone/Android)。
 - **浏览器**: 通过 Chrome, Safari 最新版验证。

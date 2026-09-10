@@ -20,18 +20,17 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import { fetchChapterContent } from '../api'
 import { ArrowLeft, Setting } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
 const chapter = ref(null)
 const loading = ref(true)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
 const fetchChapter = async () => {
     try {
-        const res = await axios.get(`${API_URL}/chapters/${route.params.id}`)
+        const res = await fetchChapterContent(route.params.id)
         chapter.value = res.data
     } catch(err) {
         console.error(err)

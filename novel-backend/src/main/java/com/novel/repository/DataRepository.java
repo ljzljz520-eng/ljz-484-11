@@ -13,6 +13,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class DataRepository {
+        /** 种子数据归属的作者标识，不属于任何真实作者会话 */
+        public static final String SEED_AUTHOR_ID = "seed-author";
+
         private final Map<Long, Novel> novels = new ConcurrentHashMap<>();
         private final Map<Long, Chapter> chapters = new ConcurrentHashMap<>();
         private final AtomicLong novelIdGenerator = new AtomicLong(1);
@@ -26,6 +29,7 @@ public class DataRepository {
                                 "讲述一位程序员意外穿越到未来，用代码拯救宇宙的故事。",
                                 "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=800&auto=format&fit=crop",
                                 LocalDateTime.now());
+                novel1.setAuthorId(SEED_AUTHOR_ID);
                 novels.put(novel1.getId(), novel1);
 
                 seedChapter(novel1.getId(), "第一章：Hello World", 1, "他醒来时，发现眼前只有绿色的代码流...");
@@ -37,6 +41,7 @@ public class DataRepository {
                                 "灵气复苏，万物进化。他发现修仙法门竟然符合微服务架构原理。",
                                 "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop",
                                 LocalDateTime.now());
+                novel2.setAuthorId(SEED_AUTHOR_ID);
                 novels.put(novel2.getId(), novel2);
 
                 seedChapter(novel2.getId(), "第一章：单体应用破碎", 1, "天地巨变，世界原本的秩序（Monolith）崩塌了。");
@@ -47,6 +52,7 @@ public class DataRepository {
                                 "作为世界系统的唯一QA，他能看到由于Bug导致的隐藏剧情。",
                                 "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?q=80&w=800&auto=format&fit=crop",
                                 LocalDateTime.now());
+                novel3.setAuthorId(SEED_AUTHOR_ID);
                 novels.put(novel3.getId(), novel3);
         }
 
@@ -77,6 +83,14 @@ public class DataRepository {
 
         public Novel findNovelById(Long id) {
                 return novels.get(id);
+        }
+
+        /** 作者后台视角：仅返回该作者本人的小说，实现作者间数据隔离 */
+        public List<Novel> findNovelsByAuthorId(String authorId) {
+                return novels.values().stream()
+                                .filter(n -> Objects.equals(n.getAuthorId(), authorId))
+                                .sorted(Comparator.comparing(Novel::getId).reversed())
+                                .collect(Collectors.toList());
         }
 
         public Novel saveNovel(Novel novel) {

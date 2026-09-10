@@ -7,6 +7,8 @@ public class Novel {
     private String title;
     private String description;
     private String coverUrl;
+    /** 作者身份标识：作者后台接口据此隔离不同作者的作品与草稿 */
+    private String authorId;
     private LocalDateTime createdAt;
 
     public Novel() {}
@@ -30,6 +32,9 @@ public class Novel {
 
     public String getCoverUrl() { return coverUrl; }
     public void setCoverUrl(String coverUrl) { this.coverUrl = coverUrl; }
+
+    public String getAuthorId() { return authorId; }
+    public void setAuthorId(String authorId) { this.authorId = authorId; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

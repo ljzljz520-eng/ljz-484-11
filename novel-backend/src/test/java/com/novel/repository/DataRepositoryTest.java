@@ -5,6 +5,8 @@ import com.novel.model.Novel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DataRepositoryTest {
@@ -81,6 +83,29 @@ class DataRepositoryTest {
 
         assertNotNull(saved.getId());
         assertEquals(saved, repository.findNovelById(saved.getId()));
+    }
+
+    @Test
+    void novelsAreIsolatedByAuthor() {
+        Novel mine = new Novel();
+        mine.setTitle("作者A的书");
+        mine.setAuthorId("author-a");
+        repository.saveNovel(mine);
+
+        Novel other = new Novel();
+        other.setTitle("作者B的书");
+        other.setAuthorId("author-b");
+        repository.saveNovel(other);
+
+        // 作者A 只能看到自己的书
+        List<Novel> aNovels = repository.findNovelsByAuthorId("author-a");
+        assertTrue(aNovels.stream().anyMatch(n -> n.getId().equals(mine.getId())));
+        assertTrue(aNovels.stream().noneMatch(n -> n.getId().equals(other.getId())));
+        // 种子数据归属 seed-author，不出现在任何真实作者的列表中
+        assertTrue(aNovels.stream().noneMatch(n -> DataRepository.SEED_AUTHOR_ID.equals(n.getAuthorId())));
+        assertFalse(repository.findNovelsByAuthorId(DataRepository.SEED_AUTHOR_ID).isEmpty());
+        // 未知作者列表为空
+        assertTrue(repository.findNovelsByAuthorId("nobody").isEmpty());
     }
 
     @Test

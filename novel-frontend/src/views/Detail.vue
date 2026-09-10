@@ -50,7 +50,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import { fetchNovelDetail } from '../api'
 import { ArrowLeft } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -58,11 +58,10 @@ const router = useRouter()
 const novel = ref(null)
 const chapters = ref([])
 const loading = ref(true)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
 const fetchDetail = async () => {
   try {
-    const res = await axios.get(`${API_URL}/novels/${route.params.id}`)
+    const res = await fetchNovelDetail(route.params.id)
     novel.value = res.data.novel
     chapters.value = res.data.chapters
   } catch (err) {

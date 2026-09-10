@@ -30,15 +30,17 @@
 - `GET /api/chapters/{id}`: 获取具体章节正文内容（草稿返回 404）。
 
 ### 4.2 作者后台接口（`/api/author`，含草稿）
-- `POST /api/author/novels`: 创建小说。
-- `GET /api/author/novels`: 作者的小说列表。
-- `GET /api/author/novels/{novelId}/chapters`: 章节列表（含草稿）。
-- `POST /api/author/novels/{novelId}/chapters`: 新增章节（默认保存为草稿）。
-- `GET /api/author/chapters/{id}`: 获取章节（含草稿，用于编辑）。
-- `PUT /api/author/chapters/{id}`: 保存草稿（修改标题与正文）。
-- `POST /api/author/chapters/{id}/publish`: 发布章节，发布后读者可见。
+作者后台接口通过 `X-Author-Id` 请求头标识作者身份（前端为每个浏览器生成并持久化一个随机 ID），
+仅允许操作当前作者本人的小说与章节：缺少身份头返回 400，资源不存在返回 404，属于他人返回 403。
+- `POST /api/author/novels`: 创建小说（归属当前作者）。
+- `GET /api/author/novels`: 当前作者的小说列表（不含他人作品与种子数据）。
+- `GET /api/author/novels/{novelId}/chapters`: 章节列表（含草稿，仅本人小说）。
+- `POST /api/author/novels/{novelId}/chapters`: 新增章节（默认保存为草稿，仅本人小说）。
+- `GET /api/author/chapters/{id}`: 获取章节（含草稿，用于编辑，仅本人章节）。
+- `PUT /api/author/chapters/{id}`: 保存草稿（修改标题与正文，仅本人章节）。
+- `POST /api/author/chapters/{id}/publish`: 发布章节，发布后读者可见（仅本人章节）。
 
 ## 5. 数据模型
-- **Novel (小说)**: ID, Title, Description, CoverUrl, CreatedAt.
+- **Novel (小说)**: ID, Title, Description, CoverUrl, AuthorId, CreatedAt.
 - **Chapter (章节)**: ID, NovelId, Title, OrderNo, Content, Status (`DRAFT`/`PUBLISHED`), CreatedAt, UpdatedAt.
   - `DRAFT`（草稿）仅作者后台可见；`PUBLISHED`（已发布）对读者可见。
