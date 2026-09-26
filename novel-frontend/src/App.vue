@@ -7,8 +7,11 @@
             <span class="logo-icon">📚</span>
             Novels
           </router-link>
-          
-           <!-- Placeholder for nav/search -->
+
+           <nav class="app-nav">
+             <router-link to="/" class="nav-link" exact-active-class="nav-active">书库</router-link>
+             <router-link to="/author" class="nav-link" active-class="nav-active">作者后台</router-link>
+           </nav>
         </div>
       </header>
       <main class="app-main">
@@ -41,7 +44,33 @@ const locale = zhCn
 .header-content {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   height: 100%;
+}
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.nav-link {
+  color: var(--slate-300);
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.nav-link:hover {
+  color: #fff;
+}
+.nav-active {
+  color: #fff;
+}
+.nav-active::after {
+  content: '';
+  display: block;
+  height: 2px;
+  margin-top: 2px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 2px;
 }
 .logo {
   font-size: 24px;

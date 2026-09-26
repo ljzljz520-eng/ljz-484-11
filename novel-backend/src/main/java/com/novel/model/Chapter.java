@@ -8,18 +8,25 @@ public class Chapter {
     private String title;
     private Integer orderNo;
     private String content;
+    private ChapterStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public Chapter() {
+        // 新建章节默认是草稿
+        this.status = ChapterStatus.DRAFT;
     }
 
+    /** 仅供种子数据使用：直接构造一个已发布章节 */
     public Chapter(Long id, Long novelId, String title, Integer orderNo, String content, LocalDateTime createdAt) {
         this.id = id;
         this.novelId = novelId;
         this.title = title;
         this.orderNo = orderNo;
         this.content = content;
+        this.status = ChapterStatus.PUBLISHED;
         this.createdAt = createdAt;
+        this.updatedAt = createdAt;
     }
 
     public Long getId() {
@@ -62,11 +69,27 @@ public class Chapter {
         this.content = content;
     }
 
+    public ChapterStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ChapterStatus status) {
+        this.status = status;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

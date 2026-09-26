@@ -10,7 +10,7 @@
           placeholder="搜索你的下一场冒险..."
           class="custom-search"
           size="large"
-          @keyup.enter="fetchNovels"
+          @keyup.enter="fetchNovelList"
         >
           <template #prefix>
             <el-icon class="search-icon"><Search /></el-icon>
@@ -56,8 +56,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
 import { Search } from '@element-plus/icons-vue'
+import { fetchNovels } from '../api/novel'
 
 const novels = ref([])
 const loading = ref(false)
@@ -65,20 +65,17 @@ const searchKeyword = ref('')
 const page = ref(1)
 const size = ref(10)
 const total = ref(0)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
-const fetchNovels = async () => {
+const fetchNovelList = async () => {
   loading.value = true
   try {
-    const res = await axios.get(`${API_URL}/novels`, {
-      params: {
-        page: page.value,
-        size: size.value,
-        keyword: searchKeyword.value
-      }
+    const data = await fetchNovels({
+      page: page.value,
+      size: size.value,
+      keyword: searchKeyword.value
     })
-    novels.value = res.data.data
-    total.value = res.data.total
+    novels.value = data.data
+    total.value = data.total
   } catch (err) {
     console.error(err)
   } finally {
@@ -88,7 +85,7 @@ const fetchNovels = async () => {
 
 const handlePageChange = (val) => {
   page.value = val
-  fetchNovels()
+  fetchNovelList()
 }
 
 const formatDate = (dateStr) => {
@@ -97,7 +94,7 @@ const formatDate = (dateStr) => {
 }
 
 onMounted(() => {
-  fetchNovels()
+  fetchNovelList()
 })
 </script>
 

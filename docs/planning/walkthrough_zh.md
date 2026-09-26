@@ -22,3 +22,27 @@
 - 后端 API 返回正确的封面 URL。
 - 前端使用新的 CSS 变量成功构建。
 - 所有页面在浅色模式下渲染正常，对比度符合标准。
+
+---
+
+# 章节草稿管理迭代
+
+作者可以在前端创建小说并管理章节草稿，接口代码全部落在后端工程。
+
+## 变更内容
+
+### 1. 后端 (novel-backend)
+- `Chapter` 增加 `status`（DRAFT/PUBLISHED）与 `updatedAt`，新增 `ChapterStatus` 枚举；种子章节标记为已发布。
+- 新增 `AuthorController`（`/api/author/**`）：创建/列出小说、查询全部章节（含草稿）、新增草稿、修改标题正文、发布。
+- 新增 `dto`（NovelRequest/ChapterRequest）与 `exception`（404/400 全局处理）。
+- `DataRepository` 新增保存、含/不含草稿查询、序号自增等方法；公开接口仅返回 PUBLISHED 章节。
+
+### 2. 前端 (novel-frontend)
+- 新增 `src/api/`：Axios 统一封装（http/novel/author），只做 HTTP 调用。
+- 新增作者后台页面：作品列表（含创建小说对话框）、章节管理（状态标签+发布）、章节编辑器（保存草稿/保存并发布）。
+- 顶部导航加入口；现有页面改用 API 封装；阅读页对草稿 404 显示“章节不存在或尚未发布”。
+
+## 验证结论
+- `mvn compile` 通过；前端 `vite build` 通过。
+- curl 端到端验证：创建小说 → 新增草稿（DRAFT，序号自增）→ 草稿在三个公开接口均不可见/404 → 后台修改标题正文 → 发布后公开可见且内容同步 → 参数校验 400 正常。
+- Vite 代理下作者后台路由与接口联通正常。

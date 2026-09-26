@@ -1,6 +1,7 @@
 package com.novel.repository;
 
 import com.novel.model.Chapter;
+import com.novel.model.ChapterStatus;
 import com.novel.model.Novel;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
@@ -76,14 +77,69 @@ public class DataRepository {
                 return novels.get(id);
         }
 
-        public List<Chapter> findChaptersByNovelId(Long novelId) {
+        public Novel saveNovel(Novel novel) {
+                if (novel.getId() == null) {
+                        novel.setId(novelIdGenerator.getAndIncrement());
+                }
+                novels.put(novel.getId(), novel);
+                return novel;
+        }
+
+        /** 公开视角：只返回已发布章节 */
+        public List<Chapter> findPublishedChaptersByNovelId(Long novelId) {
                 return chapters.values().stream()
                                 .filter(c -> c.getNovelId().equals(novelId))
+                                .filter(c -> c.getStatus() == ChapterStatus.PUBLISHED)
                                 .sorted(Comparator.comparing(Chapter::getOrderNo))
                                 .collect(Collectors.toList());
         }
 
+        /** 作者后台视角：返回全部章节（含草稿），草稿排在最后 */
+        public List<Chapter> findAllChaptersByNovelId(Long novelId) {
+                return chapters.values().stream()
+                                .filter(c -> c.getNovelId().equals(novelId))
+                                .sorted(Comparator.comparing(Chapter::getStatus)
+                                                .reversed()
+                                                .thenComparing(Chapter::getOrderNo))
+                                .collect(Collectors.toList());
+        }
+
+        /** 内部使用：不区分状态 */
         public Chapter findChapterById(Long id) {
                 return chapters.get(id);
+        }
+
+        /** 公开视角：草稿章节视为不存在 */
+        public Chapter findPublishedChapterById(Long id) {
+                Chapter chapter = chapters.get(id);
+                if (chapter == null || chapter.getStatus() != ChapterStatus.PUBLISHED) {
+                        return null;
+                }
+                return chapter;
+        }
+
+        public Chapter saveChapter(Chapter chapter) {
+                LocalDateTime now = LocalDateTime.now();
+                if (chapter.getId() == null) {
+                        chapter.setId(chapterIdGenerator.getAndIncrement());
+                        chapter.setCreatedAt(now);
+                }
+                if (chapter.getStatus() == null) {
+                        chapter.setStatus(ChapterStatus.DRAFT);
+                }
+                chapter.setUpdatedAt(now);
+                chapters.put(chapter.getId(), chapter);
+                return chapter;
+        }
+
+        /** 新草稿的章节序号 = 该书现有最大序号 + 1 */
+        public int nextOrderNo(Long novelId) {
+                return chapters.values().stream()
+                                .filter(c -> c.getNovelId().equals(novelId))
+                                .map(Chapter::getOrderNo)
+                                .filter(Objects::nonNull)
+                                .max(Integer::compareTo)
+                                .map(max -> max + 1)
+                                .orElse(1);
         }
 }

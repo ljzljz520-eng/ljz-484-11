@@ -2,13 +2,19 @@
   <div class="read-page" v-loading="loading">
 
      <div class="reader-container">
-         <div class="content-paper" v-if="chapter">
+         <div v-if="notFound" class="chapter-unavailable">
+             <h2 class="unavailable-title">章节不存在或尚未发布</h2>
+             <p class="unavailable-desc">未发布的草稿仅作者在后台可见，发布后即可正常阅读。</p>
+             <el-button type="primary" round @click="goHome">回到首页</el-button>
+         </div>
+
+         <div class="content-paper" v-else-if="chapter">
              <h2 class="chapter-heading">{{ chapter.title }}</h2>
              <div class="text-content font-serif">
                  <p v-for="(para, idx) in paragraphs" :key="idx">{{ para }}</p>
              </div>
          </div>
-         
+
          <div class="footer-controls" v-if="chapter">
              <!-- Navigation logic could be added here if we fetched next/prev IDs -->
              <el-button class="nav-chapter-btn glass-panel" @click="goBack">返回目录</el-button>
@@ -20,24 +26,28 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
-import { ArrowLeft, Setting } from '@element-plus/icons-vue'
+import { fetchChapter } from '../api/novel'
 
 const route = useRoute()
 const router = useRouter()
 const chapter = ref(null)
+const notFound = ref(false)
 const loading = ref(true)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
-const fetchChapter = async () => {
-    try {
-        const res = await axios.get(`${API_URL}/chapters/${route.params.id}`)
-        chapter.value = res.data
-    } catch(err) {
-        console.error(err)
-    } finally {
-        loading.value = false
+const loadChapter = async () => {
+  loading.value = true
+  notFound.value = false
+  try {
+    chapter.value = await fetchChapter(route.params.id)
+  } catch(err) {
+    // 草稿章节在公开接口返回 404，不会泄露正文
+    if (err.response && err.response.status === 404) {
+      notFound.value = true
     }
+    console.error(err)
+  } finally {
+    loading.value = false
+  }
 }
 
 const paragraphs = computed(() => {
@@ -53,7 +63,11 @@ const goBack = () => {
     }
 }
 
-onMounted(fetchChapter)
+const goHome = () => {
+    router.push('/')
+}
+
+onMounted(loadChapter)
 </script>
 
 <style scoped>
@@ -112,5 +126,21 @@ onMounted(fetchChapter)
     background: rgba(0, 0, 0, 0.05);
     border-color: var(--primary-color);
     color: var(--primary-color);
+}
+
+.chapter-unavailable {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.unavailable-title {
+    font-size: 1.6rem;
+    color: #111827;
+    margin-bottom: 12px;
+}
+
+.unavailable-desc {
+    color: #6b7280;
+    margin-bottom: 30px;
 }
 </style>

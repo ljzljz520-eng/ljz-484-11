@@ -11,13 +11,17 @@
 novel-system/
 ├── novel-backend/          # 后端项目 (Maven)
 │   ├── src/main/java/com/novel/
-│   │   ├── controller/    # 接口定义
-│   │   ├── model/         # 数据实体
+│   │   ├── controller/    # 接口定义（NovelController 公开 / AuthorController 作者后台）
+│   │   ├── model/         # 数据实体（含 ChapterStatus 草稿状态枚举）
+│   │   ├── dto/           # 请求体对象（NovelRequest / ChapterRequest）
+│   │   ├── exception/     # 全局异常处理（404/400 统一错误体）
 │   │   └── repository/    # 数据存储逻辑
 │   └── Dockerfile
 ├── novel-frontend/         # 前端项目 (Vite + Vue)
 │   ├── src/
+│   │   ├── api/           # Axios 请求封装（仅调用接口，接口实现都在后端）
 │   │   ├── views/         # 页面组件
+│   │   │   └── author/    # 作者后台页面（作品/章节管理/编辑器）
 │   │   ├── assets/        # 全局样式与资源
 │   │   └── router/        # 路由配置
 │   └── Dockerfile

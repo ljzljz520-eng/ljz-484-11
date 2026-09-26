@@ -18,9 +18,9 @@
   - Web 服务器: Nginx (用于前端部署及 API 代理)
 
 ## 3. 逻辑架构
-- **表现层**: 基于 Vue 3 的单页应用 (SPA)，通过 Axios 与后端进行 RESTful 通信。
-- **业务逻辑层**: Spring Boot 控制器处理业务逻辑。
-- **数据访问层**: 内存型数据仓库 (In-memory Repository)，通过 `ConcurrentHashMap` 模拟数据库交互。
+- **表现层**: 基于 Vue 3 的单页应用 (SPA)，通过 Axios 与后端进行 RESTful 通信。公开页面（书库/详情/阅读）与 `/author` 作者后台页面分离，HTTP 请求统一封装在前端 `src/api/`，不包含任何接口实现。
+- **业务逻辑层**: Spring Boot 控制器处理业务逻辑。`NovelController` 提供公开读者接口（只暴露已发布章节）；`AuthorController` (`/api/author/**`) 提供小说创建、章节草稿保存/修改/发布等作者后台接口；全局异常处理将不存在/不可见资源统一映射为 404。
+- **数据访问层**: 内存型数据仓库 (In-memory Repository)，通过 `ConcurrentHashMap` 模拟数据库交互。章节含 DRAFT / PUBLISHED 状态，公开查询自动过滤草稿。
 
 ## 4. 部署架构
 系统通过 Docker Compose 进行全量容器化部署：

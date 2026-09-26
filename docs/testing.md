@@ -8,14 +8,26 @@
 | :--- | :--- | :--- | :--- |
 | 首页 | 小说列表展示 | 能够正确显示多本书籍封面及简介 | ✅ 通过 |
 | 首页 | 关键词搜索 | 输入标题关键词能实时过滤列表 | ✅ 通过 |
-| 详情页 | 目录加载 | 进入书籍后能显示其所有章节列表 | ✅ 通过 |
+| 详情页 | 目录加载 | 进入书籍后能显示其所有**已发布**章节列表 | ✅ 通过 |
 | 阅读页 | 正文渲染 | 点击章节后能流畅进入阅读页，排版正常 | ✅ 通过 |
+| 作者后台 | 创建小说 | 空标题提交返回 400；合法提交后进入章节管理 | ✅ 通过 |
+| 作者后台 | 新增草稿 | 新章节状态为 DRAFT，章节序号在该书内自增 | ✅ 通过 |
+| 作者后台 | 修改标题/正文 | PUT 保存后标题与正文更新，状态保持 DRAFT | ✅ 通过 |
+| 作者后台 | 草稿状态标签 | 章节管理页对草稿/已发布显示不同颜色标签 | ✅ 通过 |
+| 作者后台 | 发布章节 | 发布后状态变为 PUBLISHED，公开目录可见 | ✅ 通过 |
+| 阅读页 | 草稿 404 错误态 | 访问未发布章节显示“尚未发布”提示页 | ✅ 通过 |
 
 ## 3. 接口测试 (API Testing)
-使用 Swagger 进行接口验证：
+使用 Swagger / curl 进行接口验证：
 - `GET /api/novels`: 返回 200，JSON 包含分页数据。
 - `GET /api/novels/1`: 返回书籍详情及章节数据。
 - `GET /api/chapters/1`: 正确返回正文字符串。
+- `POST /api/author/novels`: 创建小说，空标题返回 400 错误体。
+- `POST /api/author/novels/{id}/chapters`: 返回 DRAFT 章节，orderNo 自动递增。
+- `GET /api/author/novels/{id}/chapters`: 列表包含草稿与已发布章节。
+- `PUT /api/author/chapters/{id}`: 修改标题正文，空标题返回 400。
+- `POST /api/author/chapters/{id}/publish`: 状态由 DRAFT 变为 PUBLISHED。
+- **草稿隔离回归**: 草稿状态下 `GET /api/novels/{id}`、`GET /api/novels/{id}/chapters` 不包含该章节，`GET /api/chapters/{id}` 返回 404；发布后三个接口均可见。
 
 ## 4. 兼容性测试
 - **设备**: 适配 PC 端 (1440px+) 和 移动端 (iPhone/Android)。

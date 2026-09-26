@@ -1,5 +1,6 @@
 package com.novel.controller;
 
+import com.novel.exception.NotFoundException;
 import com.novel.model.Chapter;
 import com.novel.model.Novel;
 import com.novel.repository.DataRepository;
@@ -41,32 +42,37 @@ public class NovelController {
     }
 
     @GetMapping("/novels/{id}")
-    @Operation(summary = "Get Novel Details (with chapters)")
+    @Operation(summary = "Get Novel Details (with published chapters)")
     public Map<String, Object> getNovelDetail(@PathVariable Long id) {
         Novel novel = dataRepository.findNovelById(id);
         if (novel == null) {
-            throw new RuntimeException("Novel not found");
+            throw new NotFoundException("Novel not found");
         }
-        List<Chapter> chapters = dataRepository.findChaptersByNovelId(id);
+        // 公开读者只能看到已发布章节，草稿不会出现在目录中
+        List<Chapter> chapters = dataRepository.findPublishedChaptersByNovelId(id);
 
         Map<String, Object> response = new HashMap<>();
         response.put("novel", novel);
-        response.put("chapters", chapters); // Include chapters as requested ("merge directory into detail")
+        response.put("chapters", chapters);
         return response;
     }
 
     @GetMapping("/novels/{id}/chapters")
-    @Operation(summary = "Get Chapters for a Novel")
+    @Operation(summary = "Get Published Chapters for a Novel")
     public List<Chapter> getChapters(@PathVariable Long id) {
-        return dataRepository.findChaptersByNovelId(id);
+        if (dataRepository.findNovelById(id) == null) {
+            throw new NotFoundException("Novel not found");
+        }
+        return dataRepository.findPublishedChaptersByNovelId(id);
     }
 
     @GetMapping("/chapters/{id}")
-    @Operation(summary = "Get Chapter Content")
+    @Operation(summary = "Get Published Chapter Content")
     public Chapter getChapter(@PathVariable Long id) {
-        Chapter chapter = dataRepository.findChapterById(id);
+        // 草稿章节在公开接口中直接返回 404，只有作者后台接口可以读取
+        Chapter chapter = dataRepository.findPublishedChapterById(id);
         if (chapter == null) {
-            throw new RuntimeException("Chapter not found");
+            throw new NotFoundException("Chapter not found");
         }
         return chapter;
     }
