@@ -11,13 +11,16 @@
 novel-system/
 ├── novel-backend/          # 后端项目 (Maven)
 │   ├── src/main/java/com/novel/
-│   │   ├── controller/    # 接口定义
-│   │   ├── model/         # 数据实体
+│   │   ├── controller/    # 接口定义（公共接口 + 作者后台接口）
+│   │   ├── dto/           # 请求体对象
+│   │   ├── exception/     # 业务异常与全局异常处理
+│   │   ├── model/         # 数据实体与枚举
 │   │   └── repository/    # 数据存储逻辑
 │   └── Dockerfile
 ├── novel-frontend/         # 前端项目 (Vite + Vue)
 │   ├── src/
-│   │   ├── views/         # 页面组件
+│   │   ├── api/           # 后端接口的 HTTP 客户端封装
+│   │   ├── views/         # 页面组件（views/author 为作者后台）
 │   │   ├── assets/        # 全局样式与资源
 │   │   └── router/        # 路由配置
 │   └── Dockerfile
